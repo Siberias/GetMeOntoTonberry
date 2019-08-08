@@ -1,6 +1,8 @@
 ﻿using HtmlAgilityPack;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -15,8 +17,7 @@ namespace GetMeOntoTonberry
 
         static void Main(string[] args)
         {
-            QueryServerStatus();
-            Console.ReadKey();
+            QueryServerStatus().GetAwaiter().GetResult();
         }
 
         private static async Task QueryServerStatus()
@@ -44,9 +45,68 @@ namespace GetMeOntoTonberry
                     else
                     {
                         Console.WriteLine(serverName + " is available!!! GO GO GO!!!");
+                        SendSuccessEmail();
                     }
+
+                    return;
                 }
             }
+
+            Console.WriteLine("We couldn't find Tonberry :(");
+        }
+
+        private static void SendTestEmail()
+        {
+            SendEmail
+                (
+                    "Hello Adventurer! Kupo kupo!\n" +
+                    "\n" +
+                    "From your friend, the Messenger Moogle"
+                );
+        }
+
+        private static void SendSuccessEmail()
+        {
+            SendEmail
+                 (
+                    "Tonberry is available kupo!!\n" +
+                    "\n" +
+                    "From your friend, the Messenger Moogle"
+                 );
+        }
+
+        private static void SendEmail(string body)
+        {
+            MailMessage email = new MailMessage();
+
+            email.From = new MailAddress("messengermoogle@gmail.com");
+            email.To.Add("siberias.samt@gmail.com");
+            email.Body = body;
+
+            SmtpClient smtpServer = new SmtpClient("smtp.gmail.com");
+
+            smtpServer.Port = 587;
+            smtpServer.Credentials = LoadEmailCredentialsFromFile();
+            smtpServer.EnableSsl = true;
+
+            smtpServer.Send(email);
+        }
+
+        class EmailCredentials
+        {
+           public string Username = "";
+           public string Password = "";
+        }
+
+        private static System.Net.NetworkCredential LoadEmailCredentialsFromFile()
+        {
+            string fileName = "emailCredentials.json";
+
+            string fileText = File.ReadAllText(fileName);
+
+            EmailCredentials credentialsFromFile = JsonConvert.DeserializeObject<EmailCredentials>(fileText);
+
+            return new System.Net.NetworkCredential(credentialsFromFile.Username, credentialsFromFile.Password);
         }
     }
 }
