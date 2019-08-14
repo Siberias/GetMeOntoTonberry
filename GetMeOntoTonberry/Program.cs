@@ -13,7 +13,7 @@ namespace GetMeOntoTonberry
 {
     class Program
     {
-        private static string serverName = "Tonberry";
+        private static string ServerName = "Tonberry";
 
         static void Main(string[] args)
         {
@@ -34,17 +34,17 @@ namespace GetMeOntoTonberry
             {
                 var worldNameItems = item.Descendants("div").Where(node => node.GetAttributeValue("class", "").Equals("world-list__world_name")).ToList();
 
-                if(worldNameItems[0].InnerHtml.Contains(serverName))
+                if(worldNameItems[0].InnerHtml.Contains(ServerName))
                 {
                     var characterCreationStatusItems = item.Descendants("div").Where(node => node.GetAttributeValue("class", "").Equals("world-list__create_character")).ToList();
 
                     if(characterCreationStatusItems[0].InnerHtml.Contains("unavailable"))
                     {
-                        Console.WriteLine(serverName + " is unavailable :(");
+                        Console.WriteLine(ServerName + " is unavailable :(");
                     }
                     else
                     {
-                        Console.WriteLine(serverName + " is available!!! GO GO GO!!!");
+                        Console.WriteLine(ServerName + " is available!!! GO GO GO!!!");
                         SendSuccessEmail();
                     }
 
@@ -77,36 +77,49 @@ namespace GetMeOntoTonberry
 
         private static void SendEmail(string body)
         {
+            EmailConfiguration emailConfiguration = LoadEmailCredentialsFromFile();
+
             MailMessage email = new MailMessage();
 
-            email.From = new MailAddress("messengermoogle@gmail.com");
-            email.To.Add("siberias.samt@gmail.com");
+            email.From = new MailAddress(emailConfiguration.Sender.Email);
+            email.To.Add(emailConfiguration.Receiver.Email);
             email.Body = body;
 
             SmtpClient smtpServer = new SmtpClient("smtp.gmail.com");
 
             smtpServer.Port = 587;
-            smtpServer.Credentials = LoadEmailCredentialsFromFile();
+            smtpServer.Credentials = new System.Net.NetworkCredential(emailConfiguration.Sender.Email, emailConfiguration.Sender.Password);
             smtpServer.EnableSsl = true;
 
             smtpServer.Send(email);
         }
 
-        class EmailCredentials
+        class EmailConfiguration
         {
-           public string Username = "";
-           public string Password = "";
+            public SenderDetails Sender;
+            public ReceiverDetails Receiver;
+
+            public class SenderDetails
+            {
+                public string Email = "";
+                public string Password = "";
+            }
+
+            public class ReceiverDetails
+            {
+                public string Email = "";
+            }
         }
 
-        private static System.Net.NetworkCredential LoadEmailCredentialsFromFile()
+        private static EmailConfiguration LoadEmailCredentialsFromFile()
         {
             string fileName = "emailCredentials.json";
 
             string fileText = File.ReadAllText(fileName);
 
-            EmailCredentials credentialsFromFile = JsonConvert.DeserializeObject<EmailCredentials>(fileText);
+            EmailConfiguration credentialsFromFile = JsonConvert.DeserializeObject<EmailConfiguration>(fileText);
 
-            return new System.Net.NetworkCredential(credentialsFromFile.Username, credentialsFromFile.Password);
+            return credentialsFromFile;
         }
     }
 }
