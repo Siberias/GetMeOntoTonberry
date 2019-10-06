@@ -38,23 +38,23 @@ namespace GetMeOntoTonberry
 
 					if (characterCreationStatusItems[0].InnerHtml.Contains("world-ic__unavailable"))
 					{
-						Console.WriteLine(ServerName + " is unavailable :(");
+						WritelineWithTime(ServerName + " is unavailable :(");
 					}
 					else if (characterCreationStatusItems[0].InnerHtml.Contains("world-ic__available"))
 					{
-						Console.WriteLine(ServerName + " is available!!! GO GO GO!!!");
+						WritelineWithTime(ServerName + " is available!!! GO GO GO!!!");
 						SendSuccessEmail();
 					}
 					else
 					{
-						Console.WriteLine(ServerName + " is under maintenance");
+						WritelineWithTime(ServerName + " is under maintenance");
 					}
 
 					return;
 				}
 			}
 
-			Console.WriteLine("We couldn't find Tonberry :(");
+			WritelineWithTime("We couldn't find Tonberry :(");
 		}
 
 		private static void SendTestEmail()
@@ -94,6 +94,12 @@ namespace GetMeOntoTonberry
 			smtpServer.EnableSsl = true;
 
 			smtpServer.Send(email);
+		}
+
+		private static void WritelineWithTime(string line)
+		{
+			System.DateTime now = System.DateTime.Now;
+			Console.WriteLine(now.ToShortTimeString() + " " + line);
 		}
 
 		class EmailConfiguration
